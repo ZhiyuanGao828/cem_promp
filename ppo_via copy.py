@@ -142,7 +142,9 @@ class Agent:
             values = torch.tensor(values).to(self.device)
             for batch in mini_batches:
                 states = torch.tensor(states_arr[batch], dtype=torch.float).to(self.device)
+
                 old_probs = torch.tensor(old_probs_arr[batch]).to(self.device)
+                
                 actions = torch.tensor(actions_arr[batch]).to(self.device)
 
                 # mini batch 更新一次critic和actor的网络参数就会变化
