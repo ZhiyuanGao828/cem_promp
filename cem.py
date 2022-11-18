@@ -14,9 +14,9 @@ class CEM():
         # self.epsilon=epsilon 
         self.state_buf=  np.zeros([maxits,self.d])
         self.reward_buf=  np.zeros(maxits)
-        self.rew_buf_0=  np.zeros(maxits)
-        self.rew_buf_1=  np.zeros(maxits)
-        self.rew_buf_2=  np.zeros(maxits)
+        # self.rew_buf_0=  np.zeros(maxits)
+        # self.rew_buf_1=  np.zeros(maxits)
+        # self.rew_buf_2=  np.zeros(maxits)
         self.fix_time = fix_time
         if fix_time == False:
             self.dof = 3
@@ -99,7 +99,7 @@ class CEM():
         sample_matrix = np.zeros((self.N, self.d))
         for j in range(self.d):
             sample_matrix[:,j] = np.random.normal(loc=mu[j], scale=sigma[j], size=(self.N,))
-            sample_matrix[:,2:self.d:self.dof] = mu[2:self.d:self.dof]
+            # sample_matrix[:,2:self.d:self.dof] = mu[2:self.d:self.dof]
 #         if self.v_min is not None and self.v_max is not None:
 #             sample_matrix[:,2:self.d:self.dof] = np.clip(sample_matrix[:,2:self.d:self.dof],  self.v_min[-1], self.v_max[-1])
         return sample_matrix 

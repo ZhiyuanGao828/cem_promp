@@ -50,9 +50,9 @@ class Actor(nn.Module):
     def __init__(self, n_states, n_actions, cfg, chkpt_dir='/home/zhiyuan/notebook_script/cem_promp/ppo_model'):
         super(Actor, self).__init__()
         self.checkpoint_file = os.path.join(chkpt_dir, 'actor_torch_ppo')
-        self.stds = torch.Tensor([ 0.1,  0.1, 0.01])
+        # self.stds = torch.Tensor([ 0.1,  0.1, 0.01])
+        self.stds = torch.Tensor([ 3,  3])
         # nn.Parameter(torch.ones(n_actions))*0.1
-
         self.actor = nn.Sequential(
             nn.Linear(n_states, cfg.hidden_dim),
             nn.Tanh(),
@@ -63,13 +63,11 @@ class Actor(nn.Module):
             )
 
     def forward(self, state):
-        mu= self.actor(state)
-        k=torch.Tensor([8,8,1])
-
+        mu= self.actor(state.float())
+        # k=torch.Tensor([10,10,1])
+        k=torch.Tensor([10,10])    #fixed t
+        # b=torch.Tensor([0,2.5,0])
         dist = MultivariateNormal(loc=mu*k,scale_tril=torch.diag(self.stds) )
-        # print(self.actor(state))
-        # print('look')
-        # action = dist.sample()
         return dist
 
     def save_checkpoint(self):

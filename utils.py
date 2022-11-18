@@ -1,12 +1,16 @@
 import numpy as np
 import pandas as pd
-from frechetdist import frdist
+# from frechetdist import frdist
 import math
 # from pytorch_fid.fid_score import calculate_frechet_distance
 # from two_dof.toy_obstacle import ToyObstacle
 # from dtw import *
 
 #  traj dim=[100,2]
+import torch
+import torch.nn as nn
+
+
 def collision_detect(rect,traj):
     if any(rect[0,0]<=p[0]<=rect[0,1] and rect[1,0]<=p[1]<=rect[1,1] for p in traj):
         col =1 
@@ -64,17 +68,21 @@ def direct_f_dist(ref_T,test_traj):
 def rect_dist(p,rect):
     _dx = max([rect[0,0]-p[0],0,p[0]-rect[0,1]])
     _dy = max([rect[1,0]-p[1],0,p[1]-rect[1,1]])  
-    return math.sqrt( _dx**2+_dy**2 )
+    d=math.sqrt( _dx**2+_dy**2 )
+
+    return d
 
 # distance between a trajectory and a rectangle    
 
-def traj_rect_dist(traj,rect):
+def traj_rect_dist(traj,rect,k):
     dist=[]
     for _p in traj:
         p_dist = rect_dist(_p,rect)
         dist.append(p_dist)
-    
-    return min(dist)
+        rew = min(dist)
+        # if rew ==0:
+        #     rew = -100
+    return  rew
 
 
 def point_dis(a,b):
@@ -92,12 +100,29 @@ def curve_dist(ref,traj):
     return l
 
 
+def get_para_array(model):
+    para=np.zeros(114)
+    para[:16] = model.state_dict()['actor.0.weight'].reshape(-1).numpy()
+    para[16:24] = model.state_dict()['actor.0.bias'].reshape(-1).numpy()
+    para[24:88] = model.state_dict()['actor.2.weight'].reshape(-1).numpy()
+    para[88:96] = model.state_dict()['actor.2.bias'].reshape(-1).numpy()
+    para[96:112] = model.state_dict()['actor.4.weight'].reshape(-1).numpy()
+    para[112:114] = model.state_dict()['actor.4.bias'].reshape(-1).numpy()
+    
+    return para
 
-# def cool_distance(x,y):
+def update_para_tensor(model,para_array):
+    tensor_list=[]
+    tensor_list.append(torch.from_numpy(para_array[:16].reshape([8,2])))
+    tensor_list.append(torch.from_numpy(para_array[16:24]))
+    tensor_list.append(torch.from_numpy(para_array[24:88].reshape([8,8])))
+    tensor_list.append(torch.from_numpy(para_array[88:96]))
+    tensor_list.append(torch.from_numpy(para_array[96:112].reshape([2,8])))
+    tensor_list.append(torch.from_numpy(para_array[112:114]))
 
-
-
-        #     toy_obstacle.eval_distance(
-        #     np.array([3,4,5,6]),
-        #     np.array([3,4,5,6])
-        # )
+    model.state_dict()['actor.0.weight'].copy_(tensor_list[0])
+    model.state_dict()['actor.0.bias'].copy_(tensor_list[1])
+    model.state_dict()['actor.2.weight'].copy_(tensor_list[2])
+    model.state_dict()['actor.2.bias'].copy_(tensor_list[3])
+    model.state_dict()['actor.4.weight'].copy_(tensor_list[4])
+    model.state_dict()['actor.4.bias'].copy_(tensor_list[5])
